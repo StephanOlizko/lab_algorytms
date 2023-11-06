@@ -86,7 +86,7 @@ probab_slider.grid(row=3, column=3, padx=10, pady=5, columnspan=2)
 
 kol_label = tk.Label(root, text="Количество записей", font=("Helvetica", 12))
 kol_label.grid(row=5, column=2)
-kol_slider = tk.Scale(root, from_=10, to=100000, variable=num_tickets, orient="horizontal")
+kol_slider = tk.Scale(root, from_=10, to=300001, variable=num_tickets, orient="horizontal")
 kol_slider.grid(row=5, column=3, padx=10, pady=5, columnspan=2)
 
 oper_label = tk.Label(root, text="1 - банковская система (веса)", font=("Helvetica", 12))
