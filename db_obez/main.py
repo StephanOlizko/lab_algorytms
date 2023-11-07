@@ -3,7 +3,6 @@ import tkinter as tk
 from tkinter import filedialog
 import pandas as pd
 import random
-from gender_guesser.detector import Detector
 from datetime import datetime
 
 def calculate_k_anonymity():
@@ -27,7 +26,7 @@ def calculate_k_anonymity():
         kper[i] = kper[i] / len(data)* 100
 
 
-    result_label.config(text="5 наименьших значений К-анонимности")
+    #result_label.config(text="5 наименьших значений К-анонимности")
     percentage_label.config(text="К-анонимность в %:")
     result_text.delete(1.0, tk.END)
 
