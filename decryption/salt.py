@@ -34,7 +34,7 @@ for salt in range(0, max_possible_addition+1):
     flg = True
     n = 0
     if salt % 5000000 == 0:
-        print(salt/max_possible_addition * 100)
+        print(f"{salt/max_possible_addition * 100}%")
 
     for num in known_numpers:
         if num + salt not in numbers_salt:
@@ -50,7 +50,7 @@ for salt in range(0, max_possible_addition+1):
         break
 result_numbers = [i - global_salt for i in numbers_salt]
 
-print(global_salt)
+print(f"salt - {global_salt}")
 
 # Записываем номера телефонов без прибавленного числа в output.txt
 with open('output.txt', 'w') as output_file:
