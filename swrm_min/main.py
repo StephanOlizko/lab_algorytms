@@ -94,6 +94,7 @@ def run_swarm_algorithm(population_size, generations, bounds, inertia_weight, c1
             particle.position += particle.velocity
             particle.position = np.clip(particle.position, bounds[0][0], bounds[0][1])
 
+    print(global_best_position, global_best_fitness)
     return global_best_position, global_best_fitness, population
 
 
