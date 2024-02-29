@@ -16,57 +16,96 @@ def nearest_neighbor_hamiltonian_cycle(graph, canvas, pos):
     canvas.delete('all')
 
     #Пробуем начать с каждой вершины, выбираем ту, с которой получился гамильтонов цикл, если таких несколько, то выбираем наименьшей длины
+    hamiltonian_cycle = []
+
     for node in graph.nodes:
-        hamiltonian_cycle = nx.DiGraph()
-        current_node = np.random.choice(list(graph.nodes()))
+        #Пробуем найти гамильтонов цикл начиная с вершины node
+        hamiltonian_cycle_temp = nx.DiGraph()
+        hamiltonian_cycle_temp.add_node(node)
+        current_node = node
+        visited_nodes = [node]
 
-        visited_nodes = [current_node]
+        #Пока все соседи какой то вершины не посещены
+        while len(visited_nodes) < len(graph.nodes):
+            min_lenght = np.inf
+            next_node = None
+            for neighbor in graph.neighbors(current_node):
+                lenght = graph[current_node][neighbor]['weight']
+                if lenght < min_lenght and neighbor not in visited_nodes:
+                    min_lenght = lenght
+                    next_node = neighbor
+            if next_node is None:
+                break
+            else:
+                hamiltonian_cycle_temp.add_node(next_node)
+                hamiltonian_cycle_temp.add_edge(current_node, next_node, weight=min_lenght)
+                visited_nodes.append(next_node)
+                current_node = next_node
+        
+        #Если все вершины посещены и есть ребро из последней вершины в первую
+        if len(visited_nodes) == len(graph.nodes) and graph.has_edge(visited_nodes[-1], visited_nodes[0]):
+            lenght = graph[visited_nodes[-1]][visited_nodes[0]]['weight']
+            hamiltonian_cycle_temp.add_edge(visited_nodes[-1], visited_nodes[0], weight=lenght)
+            hamiltonian_cycle.append(hamiltonian_cycle_temp)
+        
 
-        while len(visited_nodes) < len(graph.nodes()):
-            nearest_neighbor = min(graph[current_node], key=lambda x: graph[current_node][x]['weight'])
-            hamiltonian_cycle.add_edge(current_node, nearest_neighbor, weight=graph[current_node][nearest_neighbor]['weight'])
-            current_node = nearest_neighbor
-            visited_nodes.append(current_node)
+    #Если гамильтонов цикл найден
+    if len(hamiltonian_cycle) > 0:
+        min_lenght = np.inf
+        min_cycle = None
+        for cycle in hamiltonian_cycle:
+            lenght = 0
+            for edge in cycle.edges:
+                lenght += cycle[edge[0]][edge[1]]['weight']
+            print(lenght)
+            print(cycle.edges())
+            print('\n')
+            if lenght < min_lenght:
+                min_lenght = lenght
+                min_cycle = cycle
+        hamiltonian_cycle = min_cycle
+    else:
+        hamiltonian_cycle = None
 
-        if graph.has_edge(current_node, visited_nodes[0]):
-            hamiltonian_cycle.add_edge(current_node, visited_nodes[0], weight=graph[current_node][visited_nodes[0]]['weight'])
-        else:
-            text1.delete(1.0, tk.END)
-            text1.insert(tk.END, 'Гамильтонов цикл не существует')
-            return None
 
+    if hamiltonian_cycle is None:
+        text1.delete(1.0, tk.END)
+        text1.insert(tk.END, 'Гамильтонов цикл не найден')
+        return None
+    else:
+        text1.delete(1.0, tk.END)
+        text1.insert(tk.END, 'Гамильтонов цикл: ')
+        text1.insert(tk.END, hamiltonian_cycle.edges())
+        text1.insert(tk.END, '\n')
+        text1.insert(tk.END, 'Длина: ')
+        
+        lenght = 0
+        for edge in hamiltonian_cycle.edges:
+            lenght += hamiltonian_cycle[edge[0]][edge[1]]['weight']
 
-    text1.delete(1.0, tk.END)
-    text1.insert(tk.END, 'Гамильтонов цикл: ')
-    text1.insert(tk.END, hamiltonian_cycle.edges())
-    text1.insert(tk.END, '\n')
-    text1.insert(tk.END, 'Длина: ')
-    
-    lenght = 0
-    for edge in hamiltonian_cycle.edges:
-        lenght += hamiltonian_cycle[edge[0]][edge[1]]['weight']
+        text1.insert(tk.END, lenght)
+        text1.insert(tk.END, '\n')
 
-    text1.insert(tk.END, lenght)
-    text1.insert(tk.END, '\n')
+        for node in hamiltonian_cycle.nodes:
+            x, y = pos[node]
+            canvas.create_oval(x-10, y-10, x+10, y+10, fill='red')
+            canvas.create_text(x, y, text=str(node))
 
-    for node in hamiltonian_cycle.nodes:
-        x, y = pos[node]
-        canvas.create_oval(x-10, y-10, x+10, y+10, fill='red')
-        canvas.create_text(x, y, text=str(node))
+        for edge in hamiltonian_cycle.edges:
+            x1, y1 = pos[edge[0]]
+            x2, y2 = pos[edge[1]]
+            canvas.create_line(x1, y1, x2, y2, arrow=tk.LAST)
 
-    for edge in hamiltonian_cycle.edges:
-        x1, y1 = pos[edge[0]]
-        x2, y2 = pos[edge[1]]
-        canvas.create_line(x1, y1, x2, y2, arrow=tk.LAST)
-
-    print(graph.edges)
-    print(pos)
-    return hamiltonian_cycle
+        return hamiltonian_cycle
 
 def Gdefault():
     global G1
     global pos
 
+    #Очистка холста
+    canvas1.delete('all')
+    tree.delete(*tree.get_children())
+    
     Gdefault = nx.DiGraph()
 
     #Координаты точкек, добавить в граф и отрисоавть {1: (218, 67), 2: (104, 129), 3: (331, 123), 4: (167, 239), 5: (285, 237), 6: (223, 155)}
