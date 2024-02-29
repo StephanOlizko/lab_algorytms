@@ -104,6 +104,4 @@ tree.heading('lenght', text='Длина')
 tree.heading('weight', text='Вес')
 tree.pack(fill='both', expand=True)
 
-
-
 root.mainloop()
