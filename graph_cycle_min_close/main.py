@@ -12,23 +12,29 @@ def finish():
 
 
 def nearest_neighbor_hamiltonian_cycle(graph, canvas, pos):
-    hamiltonian_cycle = nx.DiGraph()
-    current_node = np.random.choice(list(graph.nodes()))
+    #Очистка холста
+    canvas.delete('all')
 
-    visited_nodes = [current_node]
+    #Пробуем начать с каждой вершины, выбираем ту, с которой получился гамильтонов цикл, если таких несколько, то выбираем наименьшей длины
+    for node in graph.nodes:
+        hamiltonian_cycle = nx.DiGraph()
+        current_node = np.random.choice(list(graph.nodes()))
 
-    while len(visited_nodes) < len(graph.nodes()):
-        nearest_neighbor = min(graph[current_node], key=lambda x: graph[current_node][x]['weight'])
-        hamiltonian_cycle.add_edge(current_node, nearest_neighbor, weight=graph[current_node][nearest_neighbor]['weight'])
-        current_node = nearest_neighbor
-        visited_nodes.append(current_node)
+        visited_nodes = [current_node]
 
-    if graph.has_edge(current_node, visited_nodes[0]):
-        hamiltonian_cycle.add_edge(current_node, visited_nodes[0], weight=graph[current_node][visited_nodes[0]]['weight'])
-    else:
-        text1.delete(1.0, tk.END)
-        text1.insert(tk.END, 'Гамильтонов цикл не существует')
-        return None
+        while len(visited_nodes) < len(graph.nodes()):
+            nearest_neighbor = min(graph[current_node], key=lambda x: graph[current_node][x]['weight'])
+            hamiltonian_cycle.add_edge(current_node, nearest_neighbor, weight=graph[current_node][nearest_neighbor]['weight'])
+            current_node = nearest_neighbor
+            visited_nodes.append(current_node)
+
+        if graph.has_edge(current_node, visited_nodes[0]):
+            hamiltonian_cycle.add_edge(current_node, visited_nodes[0], weight=graph[current_node][visited_nodes[0]]['weight'])
+        else:
+            text1.delete(1.0, tk.END)
+            text1.insert(tk.END, 'Гамильтонов цикл не существует')
+            return None
+
 
     text1.delete(1.0, tk.END)
     text1.insert(tk.END, 'Гамильтонов цикл: ')
@@ -53,7 +59,96 @@ def nearest_neighbor_hamiltonian_cycle(graph, canvas, pos):
         x2, y2 = pos[edge[1]]
         canvas.create_line(x1, y1, x2, y2, arrow=tk.LAST)
 
+    print(graph.edges)
+    print(pos)
     return hamiltonian_cycle
+
+def Gdefault():
+    global G1
+    global pos
+
+    Gdefault = nx.DiGraph()
+
+    #Координаты точкек, добавить в граф и отрисоавть {1: (218, 67), 2: (104, 129), 3: (331, 123), 4: (167, 239), 5: (285, 237), 6: (223, 155)}
+    Gdefault.add_node(1)
+    Gdefault.add_node(2)
+    Gdefault.add_node(3)
+    Gdefault.add_node(4)
+    Gdefault.add_node(5)
+    Gdefault.add_node(6)
+    
+    canvas1.create_oval(218-10, 67-10, 218+10, 67+10, fill='red')
+    canvas1.create_text(218, 67, text=str(1))
+    canvas1.create_oval(104-10, 129-10, 104+10, 129+10, fill='red')
+    canvas1.create_text(104, 129, text=str(2))
+    canvas1.create_oval(331-10, 123-10, 331+10, 123+10, fill='red')
+    canvas1.create_text(331, 123, text=str(3))
+    canvas1.create_oval(167-10, 239-10, 167+10, 239+10, fill='red')
+    canvas1.create_text(167, 239, text=str(4))
+    canvas1.create_oval(285-10, 237-10, 285+10, 237+10, fill='red')
+    canvas1.create_text(285, 237, text=str(5))
+    canvas1.create_oval(223-10, 155-10, 223+10, 155+10, fill='red')
+    canvas1.create_text(223, 155, text=str(6))
+
+    #Ребра графа [(1, 2), (1, 3), (2, 1), (2, 4), (2, 6), (3, 1), (3, 5), (4, 2), (4, 5), (4, 6), (5, 4), (5, 3), (6, 2), (6, 4), (6, 1), (6, 3), (6, 5)]
+    Gdefault.add_edge(1, 2, weight=3, label=1)
+    Gdefault.add_edge(1, 3, weight=1, label=1)
+    Gdefault.add_edge(2, 1, weight=3, label=1)
+    Gdefault.add_edge(2, 4, weight=8, label=1)
+    Gdefault.add_edge(2, 6, weight=3, label=1)
+    Gdefault.add_edge(3, 1, weight=3, label=1)
+    Gdefault.add_edge(3, 5, weight=3, label=1)
+    Gdefault.add_edge(4, 2, weight=3, label=1)
+    Gdefault.add_edge(4, 5, weight=1, label=1)
+    Gdefault.add_edge(4, 6, weight=1, label=1)
+    Gdefault.add_edge(5, 4, weight=8, label=1)
+    Gdefault.add_edge(5, 3, weight=1, label=1)
+    Gdefault.add_edge(6, 2, weight=3, label=1)
+    Gdefault.add_edge(6, 4, weight=3, label=1)
+    Gdefault.add_edge(6, 1, weight=3, label=1)
+    Gdefault.add_edge(6, 3, weight=4, label=1)
+    Gdefault.add_edge(6, 5, weight=5, label=1)
+
+    #Отрисовка ребер
+    canvas1.create_line(218, 67, 104, 129, arrow=tk.LAST)
+    canvas1.create_line(218, 67, 331, 123, arrow=tk.LAST)
+    canvas1.create_line(104, 129, 218, 67, arrow=tk.LAST)
+    canvas1.create_line(104, 129, 167, 239, arrow=tk.LAST)
+    canvas1.create_line(104, 129, 223, 155, arrow=tk.LAST)
+    canvas1.create_line(331, 123, 218, 67, arrow=tk.LAST)
+    canvas1.create_line(331, 123, 285, 237, arrow=tk.LAST)
+    canvas1.create_line(167, 239, 104, 129, arrow=tk.LAST)
+    canvas1.create_line(167, 239, 285, 237, arrow=tk.LAST)
+    canvas1.create_line(167, 239, 223, 155, arrow=tk.LAST)
+    canvas1.create_line(285, 237, 167, 239, arrow=tk.LAST)
+    canvas1.create_line(285, 237, 331, 123, arrow=tk.LAST)
+    canvas1.create_line(223, 155, 104, 129, arrow=tk.LAST)
+    canvas1.create_line(223, 155, 167, 239, arrow=tk.LAST)
+    canvas1.create_line(223, 155, 218, 67, arrow=tk.LAST)
+    canvas1.create_line(223, 155, 331, 123, arrow=tk.LAST)
+    canvas1.create_line(223, 155, 285, 237, arrow=tk.LAST)
+
+    #Добавление ребер в таблицу
+    tree.insert('', 'end', values=(1, 2, 3, 1))
+    tree.insert('', 'end', values=(1, 3, 1, 1))
+    tree.insert('', 'end', values=(2, 1, 3, 1))
+    tree.insert('', 'end', values=(2, 4, 8, 1))
+    tree.insert('', 'end', values=(2, 6, 3, 1))
+    tree.insert('', 'end', values=(3, 1, 3, 1))
+    tree.insert('', 'end', values=(3, 5, 3, 1))
+    tree.insert('', 'end', values=(4, 2, 3, 1))
+    tree.insert('', 'end', values=(4, 5, 1, 1))
+    tree.insert('', 'end', values=(4, 6, 1, 1))
+    tree.insert('', 'end', values=(5, 4, 8, 1))
+    tree.insert('', 'end', values=(5, 3, 1, 1))
+    tree.insert('', 'end', values=(6, 2, 3, 1))
+    tree.insert('', 'end', values=(6, 4, 3, 1))
+    tree.insert('', 'end', values=(6, 1, 3, 1))
+    tree.insert('', 'end', values=(6, 3, 4, 1))
+    tree.insert('', 'end', values=(6, 5, 5, 1))
+
+    G1 = Gdefault
+    pos = {1: (218, 67), 2: (104, 129), 3: (331, 123), 4: (167, 239), 5: (285, 237), 6: (223, 155)}
 
 
 def edit(event):
@@ -191,6 +286,10 @@ tree.pack(fill='both', expand=True)
 
 button1 = tk.Button(frame1, text='Построить гамильтонов цикл', command=lambda: nearest_neighbor_hamiltonian_cycle(G1, canvas2, pos))
 button1.pack(fill='both')
+
+#Кнопка ввода дефолтного графа Gdefault (G1 = Gdefault())
+button2 = tk.Button(frame1, text='Gdefault', command=lambda: Gdefault())
+button2.pack(fill='both')
 
 text1 = tk.Text(frame2, height=10, width=30)
 text1.pack(fill='both', expand=True)
