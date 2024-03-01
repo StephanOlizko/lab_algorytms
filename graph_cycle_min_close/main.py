@@ -1,65 +1,65 @@
 import tkinter as tk
-import tkinter.ttk as ttk
 import networkx as nx
-import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 
+import tkinter.ttk as ttk
+import matplotlib.pyplot as plt
 
+# Функция для закрытия приложения
 def finish():
     root.destroy() 
     print("Закрытие приложения")
 
-
+# Функция для построения гамильтонова цикла методом ближайшего соседа
 def nearest_neighbor_hamiltonian_cycle(graph, canvas, pos):
-    #Очистка холста
     canvas.delete('all')
 
-    #Пробуем начать с каждой вершины, выбираем ту, с которой получился гамильтонов цикл, если таких несколько, то выбираем наименьшей длины
     hamiltonian_cycle = []
 
+    # Проходим по каждой вершине графа
     for node in graph.nodes:
-        #Пробуем найти гамильтонов цикл начиная с вершины node
         hamiltonian_cycle_temp = nx.DiGraph()
         hamiltonian_cycle_temp.add_node(node)
         current_node = node
         visited_nodes = [node]
 
-        #Пока все соседи какой то вершины не посещены
+        # Пока не посетили все вершины графа
         while len(visited_nodes) < len(graph.nodes):
             min_lenght = np.inf
             next_node = None
+            # Проходим по соседям текущей вершины
             for neighbor in graph.neighbors(current_node):
                 lenght = graph[current_node][neighbor]['weight']
+                # Если длина ребра меньше минимальной длины и соседняя вершина еще не посещена
                 if lenght < min_lenght and neighbor not in visited_nodes:
                     min_lenght = lenght
                     next_node = neighbor
+            # Если не удалось найти следующую вершину, прерываем цикл
             if next_node is None:
                 break
             else:
+                # Добавляем следующую вершину в гамильтонов цикл
                 hamiltonian_cycle_temp.add_node(next_node)
                 hamiltonian_cycle_temp.add_edge(current_node, next_node, weight=min_lenght)
                 visited_nodes.append(next_node)
                 current_node = next_node
         
-        #Если все вершины посещены и есть ребро из последней вершины в первую
+        # Если посетили все вершины и есть ребро между последней и первой вершинами
         if len(visited_nodes) == len(graph.nodes) and graph.has_edge(visited_nodes[-1], visited_nodes[0]):
             lenght = graph[visited_nodes[-1]][visited_nodes[0]]['weight']
             hamiltonian_cycle_temp.add_edge(visited_nodes[-1], visited_nodes[0], weight=lenght)
             hamiltonian_cycle.append(hamiltonian_cycle_temp)
         
 
-    #Если гамильтонов цикл найден
     if len(hamiltonian_cycle) > 0:
         min_lenght = np.inf
         min_cycle = None
+        # Находим гамильтонов цикл с минимальной длиной
         for cycle in hamiltonian_cycle:
             lenght = 0
             for edge in cycle.edges:
                 lenght += cycle[edge[0]][edge[1]]['weight']
-            print(lenght)
-            print(cycle.edges())
-            print('\n')
             if lenght < min_lenght:
                 min_lenght = lenght
                 min_cycle = cycle
@@ -67,12 +67,13 @@ def nearest_neighbor_hamiltonian_cycle(graph, canvas, pos):
     else:
         hamiltonian_cycle = None
 
-
+    # Если гамильтонов цикл не найден, выводим сообщение
     if hamiltonian_cycle is None:
         text1.delete(1.0, tk.END)
         text1.insert(tk.END, 'Гамильтонов цикл не найден')
         return None
     else:
+        # Выводим гамильтонов цикл и его длину
         text1.delete(1.0, tk.END)
         text1.insert(tk.END, 'Гамильтонов цикл: ')
         text1.insert(tk.END, hamiltonian_cycle.edges())
@@ -86,11 +87,13 @@ def nearest_neighbor_hamiltonian_cycle(graph, canvas, pos):
         text1.insert(tk.END, lenght)
         text1.insert(tk.END, '\n')
 
+        # Отображаем вершины гамильтонова цикла на холсте
         for node in hamiltonian_cycle.nodes:
             x, y = pos[node]
             canvas.create_oval(x-10, y-10, x+10, y+10, fill='red')
             canvas.create_text(x, y, text=str(node))
 
+        # Отображаем ребра гамильтонова цикла на холсте
         for edge in hamiltonian_cycle.edges:
             x1, y1 = pos[edge[0]]
             x2, y2 = pos[edge[1]]
@@ -98,17 +101,18 @@ def nearest_neighbor_hamiltonian_cycle(graph, canvas, pos):
 
         return hamiltonian_cycle
 
+# Функция для создания графа по умолчанию
 def Gdefault():
     global G1
     global pos
 
-    #Очистка холста
+    # Очищаем холст и дерево
     canvas1.delete('all')
     tree.delete(*tree.get_children())
     
     Gdefault = nx.DiGraph()
 
-    #Координаты точкек, добавить в граф и отрисоавть {1: (218, 67), 2: (104, 129), 3: (331, 123), 4: (167, 239), 5: (285, 237), 6: (223, 155)}
+    # Добавляем вершины
     Gdefault.add_node(1)
     Gdefault.add_node(2)
     Gdefault.add_node(3)
@@ -116,6 +120,7 @@ def Gdefault():
     Gdefault.add_node(5)
     Gdefault.add_node(6)
     
+    # Отображаем вершины на холсте
     canvas1.create_oval(218-10, 67-10, 218+10, 67+10, fill='red')
     canvas1.create_text(218, 67, text=str(1))
     canvas1.create_oval(104-10, 129-10, 104+10, 129+10, fill='red')
@@ -129,7 +134,7 @@ def Gdefault():
     canvas1.create_oval(223-10, 155-10, 223+10, 155+10, fill='red')
     canvas1.create_text(223, 155, text=str(6))
 
-    #Ребра графа [(1, 2), (1, 3), (2, 1), (2, 4), (2, 6), (3, 1), (3, 5), (4, 2), (4, 5), (4, 6), (5, 4), (5, 3), (6, 2), (6, 4), (6, 1), (6, 3), (6, 5)]
+    # Добавляем ребра
     Gdefault.add_edge(1, 2, weight=3, label=1)
     Gdefault.add_edge(1, 3, weight=1, label=1)
     Gdefault.add_edge(2, 1, weight=3, label=1)
@@ -148,7 +153,7 @@ def Gdefault():
     Gdefault.add_edge(6, 3, weight=4, label=1)
     Gdefault.add_edge(6, 5, weight=5, label=1)
 
-    #Отрисовка ребер
+    # Отображаем ребра на холсте
     canvas1.create_line(218, 67, 104, 129, arrow=tk.LAST)
     canvas1.create_line(218, 67, 331, 123, arrow=tk.LAST)
     canvas1.create_line(104, 129, 218, 67, arrow=tk.LAST)
@@ -167,7 +172,7 @@ def Gdefault():
     canvas1.create_line(223, 155, 331, 123, arrow=tk.LAST)
     canvas1.create_line(223, 155, 285, 237, arrow=tk.LAST)
 
-    #Добавление ребер в таблицу
+    # Добавляем ребра в дерево
     tree.insert('', 'end', values=(1, 2, 3, 1))
     tree.insert('', 'end', values=(1, 3, 1, 1))
     tree.insert('', 'end', values=(2, 1, 3, 1))
@@ -189,7 +194,7 @@ def Gdefault():
     G1 = Gdefault
     pos = {1: (218, 67), 2: (104, 129), 3: (331, 123), 4: (167, 239), 5: (285, 237), 6: (223, 155)}
 
-
+# Функция для редактирования ребра в дереве
 def edit(event):
     row_id = tree.focus()
     column_id = tree.identify_column(event.x)
@@ -213,7 +218,7 @@ def edit(event):
 
     G1.add_edge(source, target, weight=lenght, label=weight)
 
-
+# Функция для обновления дерева
 def update_tree():
     for edge in G1.edges:
         source = edge[0]
@@ -229,6 +234,7 @@ def update_tree():
             weight = 1
             tree.insert('', 'end', values=(source, target, round(lenght, 2), weight))
 
+# Функция для добавления вершины на холсте
 def add_node(event):
     global pos
 
@@ -241,7 +247,7 @@ def add_node(event):
     node_coords = (event.x, event.y)
     pos[node_id] = node_coords
 
-
+# Функция для добавления ребра при правом клике на холсте
 def add_edge_on_right_click(event):
     global node_id
 
@@ -275,7 +281,7 @@ def add_edge_on_right_click(event):
                     update_tree()
                     break
 
-
+# Создаем главное окно
 root = tk.Tk()
 root.geometry('1200x600')
 root.protocol("WM_DELETE_WINDOW", finish)
@@ -326,12 +332,10 @@ tree.pack(fill='both', expand=True)
 button1 = tk.Button(frame1, text='Построить гамильтонов цикл', command=lambda: nearest_neighbor_hamiltonian_cycle(G1, canvas2, pos))
 button1.pack(fill='both')
 
-#Кнопка ввода дефолтного графа Gdefault (G1 = Gdefault())
 button2 = tk.Button(frame1, text='Gdefault', command=lambda: Gdefault())
 button2.pack(fill='both')
 
 text1 = tk.Text(frame2, height=10, width=30)
 text1.pack(fill='both', expand=True)
-
 
 root.mainloop()
