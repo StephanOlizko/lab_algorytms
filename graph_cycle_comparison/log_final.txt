@@ -1,0 +1,29 @@
+Ant colony optimization
+Standard
+Converge full - 1.0
+Converge weak - 1.0
+Mean length, time full - 65.78 0.3666716694831848
+Mean length, time weak - 73.0 0.07451198577880859
+Optimized param
+Converge full - 1.0
+Converge weak - 1.0
+Mean length, time full - 63.88 0.5857323408126831
+Mean length, time weak - 67.38 0.0867431664466858
+
+Simulated annealing
+Standard
+Converge full - 1.0
+Converge weak - 0.1
+Mean length, time full - 73.79 0.0011199331283569336
+Mean length, time weak - 67.6 0.000151824951171875
+Optimized param
+Converge full - 1.0
+Converge weak - 0.15
+Mean length, time full - 73.27 0.0011443018913269043
+Mean length, time weak - 62.93333333333333 0.0007688681284586589
+
+Nearest neighbor
+Converge full - 1.0
+Converge weak - 0.86
+Mean length, time full - 61.97 0.04311347007751465
+Mean length, time weak - 60.33720930232558 0.004102152447367824

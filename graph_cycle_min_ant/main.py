@@ -411,13 +411,12 @@ entry1 = tk.Entry(frame1, width=10)
 entry1.pack(fill='both')
 entry1.insert(0, '10')
 
-
 #Добавь поле для ввода коэффициента охлаждения на фрейме frame1
 text2 = tk.Label(frame1, text='испарение феромона', anchor='sw', height=2)
 text2.pack(fill='both')
 entry2 = tk.Entry(frame1, width=10)
 entry2.pack(fill='both')
-entry2.insert(0, '0.1')
+entry2.insert(0, '0.5')
 
 text3 = tk.Label(frame1, text= 'коэффицент влияния феромона', anchor='sw', height=2)
 text3.pack(fill='both')
@@ -429,7 +428,7 @@ text4 = tk.Label(frame1, text='количество итераций', anchor='s
 text4.pack(fill='both')
 entry4 = tk.Entry(frame1, width=10)
 entry4.pack(fill='both')
-entry4.insert(0, '100')
+entry4.insert(0, '20')
 
 
 text1 = tk.Text(frame2, height=10, width=30)

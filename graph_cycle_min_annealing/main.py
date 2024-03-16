@@ -425,7 +425,7 @@ text1 = tk.Label(frame1, text='начальная температура', ancho
 text1.pack(fill='both')
 entry1 = tk.Entry(frame1, width=10)
 entry1.pack(fill='both')
-entry1.insert(0, '1000000000')
+entry1.insert(0, '1000')
 
 
 #Добавь поле для ввода коэффициента охлаждения на фрейме frame1
