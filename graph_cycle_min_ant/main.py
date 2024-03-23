@@ -6,6 +6,8 @@ import random
 import tkinter.ttk as ttk
 import matplotlib.pyplot as plt
 import math
+import threading
+import time
 
 # Функция для закрытия приложения
 def finish():
@@ -37,13 +39,14 @@ class Ant:
         return f'Ant({self.path}, {self.path_length}, {self.get_cycle_length()})'
 
 class AntColony:
-    def __init__(self, graph, num_ants, decay_rate, influence):
+    def __init__(self, graph, num_ants, decay_rate, influence, mode='serial'):
         self.graph = graph
         self.num_ants = num_ants
         self.decay_rate = decay_rate
         self.influence = influence
         self.pheromones = {(i, j): 1 for i in graph.nodes for j in graph.nodes if i != j}
         self.ants = [Ant(graph) for _ in range(num_ants)]
+        self.mode = mode
 
     def update_pheromones(self):
         for i, j in self.pheromones.keys():
@@ -71,8 +74,7 @@ class AntColony:
 
         return random.choices(nodes, probs)[0]
 
-    def search(self, iterations):
-        #print()
+    def search_serial(self, iterations):
         for _ in range(iterations):
             self.ants = [Ant(self.graph) for _ in range(self.num_ants)]
 
@@ -89,14 +91,55 @@ class AntColony:
                     else:
                         ant.path_length = float('inf')
 
-            #print(*self.ants)
             self.update_pheromones()
-            #print(self.pheromones)
 
         return min(self.ants, key=lambda ant: ant.path_length)
 
+    def search_parallel(self, iterations):
+        results = []
+        lock = threading.Lock()
 
-def ant_hamiltonian_cycle(graph, canvas, pos, entry1, entry2, entry3, entry4):
+        def process_ant(ant):
+            while len(ant.path) < len(self.graph.nodes):
+                next_node = self.choose_next_node(ant)
+                if next_node is None:
+                    break
+                ant.visit(next_node)
+
+            if ant.path[-1] != ant.path[0]:
+                if self.graph.has_edge(ant.path[-1], ant.path[0]) and len(ant.path) == len(self.graph.nodes):
+                    ant.visit(ant.path[0])
+                else:
+                    ant.path_length = float('inf')
+
+            with lock:
+                results.append(ant)
+
+        for _ in range(iterations):
+            threads = []
+            for ant in self.ants:
+                thread = threading.Thread(target=process_ant, args=(ant,))
+                thread.start()
+                threads.append(thread)
+
+            for thread in threads:
+                thread.join()
+
+            best_ant = min(results, key=lambda ant: ant.path_length)
+            self.update_pheromones()
+
+        return best_ant
+
+    def search(self, iterations):
+        if self.mode == 'serial':
+            return self.search_serial(iterations)
+        elif self.mode == 'parallel':
+            return self.search_parallel(iterations)
+        else:
+            raise ValueError("Invalid mode. Use 'serial' or 'parallel'.") 
+
+
+def ant_hamiltonian_cycle(graph, canvas, pos, entry1, entry2, entry3, entry4, mode):
     canvas.delete('all')
     AntNum = int(entry1.get())
     Evaporation = float(entry2.get())
@@ -105,8 +148,11 @@ def ant_hamiltonian_cycle(graph, canvas, pos, entry1, entry2, entry3, entry4):
 
     hamiltonian_cycle = None
 
-    colony = AntColony(graph, AntNum, Evaporation, Influence)
+    t1 = time.time()
+    colony = AntColony(graph, AntNum, Evaporation, Influence, mode)
     best_ant = colony.search(Iterations)
+    t2 = time.time()
+
 
     update_tree_pheromones(colony.pheromones)
     hamiltonian_cycle = nx.DiGraph()
@@ -116,6 +162,7 @@ def ant_hamiltonian_cycle(graph, canvas, pos, entry1, entry2, entry3, entry4):
     else:
         for i in range(len(best_ant.path) - 1):
             hamiltonian_cycle.add_edge(best_ant.path[i], best_ant.path[i+1], weight=graph[best_ant.path[i]][best_ant.path[i+1]]['weight'])    
+
 
 
     #Проверка на валидность гамильтонова цикла (все ребра присутствуют в исходном графе)
@@ -144,6 +191,10 @@ def ant_hamiltonian_cycle(graph, canvas, pos, entry1, entry2, entry3, entry4):
             length += graph[edge[0]][edge[1]]['weight']
 
         text1.insert(tk.END, length)
+        text1.insert(tk.END, '\n')
+
+        text1.insert(tk.END, 'Время выполнения: ')
+        text1.insert(tk.END, t2 - t1)
         text1.insert(tk.END, '\n')
 
         # Отображаем вершины гамильтонова цикла на холсте
@@ -252,6 +303,49 @@ def Gdefault():
 
     G1 = Gdefault
     pos = {1: (218, 67), 2: (104, 129), 3: (331, 123), 4: (167, 239), 5: (285, 237), 6: (223, 155)}
+
+
+def Gfull(n):
+    global G1
+    global pos
+
+    # Очищаем холст и дерево
+    canvas1.delete('all')
+    tree.delete(*tree.get_children())
+
+    Gfull = nx.DiGraph()
+    for i in range(1, n+1):
+        Gfull.add_node(i)
+
+    for i in range(1, n+1):
+        for j in range(1, n+1):
+            if i != j:
+                Gfull.add_edge(i, j, weight=random.randint(1, 10), label=1)
+
+    pos = {}
+
+    #РВершины полного графа лежат на окружности
+    for i in range(1, n+1):
+        x = 210 + 100 * math.cos(2 * math.pi * i / n)
+        y = 150 + 100 * math.sin(2 * math.pi * i / n)
+        pos[i] = (x, y)
+        canvas1.create_oval(x-10, y-10, x+10, y+10, fill='red')
+        canvas1.create_text(x, y, text=str(i))
+
+    for edge in Gfull.edges:
+        x1, y1 = pos[edge[0]]
+        x2, y2 = pos[edge[1]]
+        canvas1.create_line(x1, y1, x2, y2, arrow=tk.LAST)
+
+    G1 = Gfull
+
+    for edge in G1.edges:
+        source = edge[0]
+        target = edge[1]
+        lenght = G1[source][target]['weight']
+        weight = 1
+        tree.insert('', 'end', values=(source, target, round(lenght, 2), weight))
+
 
 # Функция для редактирования ребра в дереве
 def edit(event):
@@ -397,41 +491,53 @@ tree.heading('weight', text='Феромон')
 tree.bind('<Double-1>', edit)
 tree.pack(fill='both', expand=True)
 
-button1 = tk.Button(frame1, text='Построить гамильтонов цикл', command=lambda: ant_hamiltonian_cycle(G1, canvas2, pos, entry1, entry2, entry3, entry4))
+button1 = tk.Button(frame1, text='Построить гамильтонов цикл', command=lambda: ant_hamiltonian_cycle(G1, canvas2, pos, entry1, entry2, entry3, entry4, mode.get()))
 button1.pack(fill='both')
 
 button2 = tk.Button(frame1, text='Gdefault', command=lambda: Gdefault())
 button2.pack(fill='both')
 
+button3 = tk.Button(frame1, text='Gfull', command=lambda: Gfull(10))
+button3.pack(fill='both')
+
 #Добавь поле для ввода нчальной температуры на фрейме frame1, добавь надпись "начальная температура" рядом с полем
 
-text1 = tk.Label(frame1, text='количество муравьев', anchor='sw', height=2)
+text1 = tk.Label(frame1, text='количество муравьев', anchor='sw', height=1)
 text1.pack(fill='both')
 entry1 = tk.Entry(frame1, width=10)
 entry1.pack(fill='both')
 entry1.insert(0, '10')
 
 #Добавь поле для ввода коэффициента охлаждения на фрейме frame1
-text2 = tk.Label(frame1, text='испарение феромона', anchor='sw', height=2)
+text2 = tk.Label(frame1, text='испарение феромона', anchor='sw', height=1)
 text2.pack(fill='both')
 entry2 = tk.Entry(frame1, width=10)
 entry2.pack(fill='both')
 entry2.insert(0, '0.5')
 
-text3 = tk.Label(frame1, text= 'коэффицент влияния феромона', anchor='sw', height=2)
+text3 = tk.Label(frame1, text= 'коэффицент влияния феромона', anchor='sw', height=1)
 text3.pack(fill='both')
 entry3 = tk.Entry(frame1, width=10)
 entry3.pack(fill='both')
 entry3.insert(0, '2')
 
-text4 = tk.Label(frame1, text='количество итераций', anchor='sw', height=2)
+text4 = tk.Label(frame1, text='количество итераций', anchor='sw', height=1)
 text4.pack(fill='both')
 entry4 = tk.Entry(frame1, width=10)
 entry4.pack(fill='both')
 entry4.insert(0, '20')
 
 
+mode = tk.StringVar()
+mode.set('parallel')
+radiobutton1 = tk.Radiobutton(frame1, text='по умолчанию', variable=mode, value='parallel')
+radiobutton1.pack(fill='both')
+radiobutton2 = tk.Radiobutton(frame1, text='параллельно', variable=mode, value='serial')
+radiobutton2.pack(fill='both')
+
+
 text1 = tk.Text(frame2, height=10, width=30)
 text1.pack(fill='both', expand=True)
+
 
 root.mainloop()
