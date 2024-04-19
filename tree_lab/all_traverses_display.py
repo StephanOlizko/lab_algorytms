@@ -14,6 +14,8 @@ if st.checkbox('Создать случайное дерево'):
 
     # Создать случайное дерево
     G = nx.random_tree(num_nodes, seed=42)
+
+    start_node = 0
 else:
     # Запросить у пользователя количество вершин и ребер
     num_nodes = st.number_input('Введите количество вершин', min_value=1, value=1)
@@ -35,6 +37,9 @@ else:
     if not nx.is_tree(G):
         st.warning('Граф не является деревом')
         st.stop()
+
+    start_node = st.number_input('Введите начальную вершину', min_value=0, max_value=num_nodes-1, value=0)
+
 
 
 # Добавить атрибуты к вершинам в зависимости от слоя
@@ -58,7 +63,6 @@ st.pyplot(graph)
 
 
 # Запросить у пользователя начальную вершину (по умолчанию 0)
-start_node = st.number_input('Введите начальную вершину', min_value=0, max_value=num_nodes-1, value=0)
 
 # Получить все обходы кнопка, сохраним состояние перед этим чтобы случайный граф не пересоздавался
 if st.button('Получить все обходы'):

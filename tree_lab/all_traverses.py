@@ -3,7 +3,6 @@ import time
 
 
 def all_traverses(G, start_node):
-    stk = [[start_node]] # Стек для хранения путей
     line = [[start_node]] # Очередь для хранения путей
 
 
